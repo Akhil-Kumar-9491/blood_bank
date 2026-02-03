@@ -7,6 +7,7 @@ const totalDonors = document.getElementById("totalDonors");
 const search = document.getElementById("search");
 const successModal = document.getElementById("successModal");
 const helpModal = document.getElementById("helpModal");
+const API_BASE = "https://blood-camp-api.onrender.com";
 
 /* =========================
    FORM SUBMIT (ADD + UPDATE)
@@ -32,20 +33,33 @@ form.addEventListener("submit", async (e) => {
     gender: genderInput.value,
   };
 
-  const url = editingDonorId
-    ? `http://localhost:5000/api/donor/${editingDonorId}`
-    : "http://localhost:5000/api/donor/register";
+const url = editingDonorId
+  ? `${API_BASE}/api/donor/${editingDonorId}`
+  : `${API_BASE}/api/donor/register`;
+
 
   const method = editingDonorId ? "PUT" : "POST";
 
+try {
   const res = await fetch(url, {
     method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
+  if (!res.ok) {
+    throw new Error("API error");
+  }
+
   const result = await res.json();
   console.log("SAVE RESULT:", result);
+
+} catch (err) {
+  alert("Server not reachable");
+  console.error("FETCH ERROR:", err);
+  return; // ❗ stop further execution
+}
+
 
   editingDonorId = null;
 
@@ -74,7 +88,8 @@ function showSection(id) {
    LOAD DASHBOARD (DB DATA)
    ========================= */
 async function loadDashboard() {
-  const res = await fetch("http://localhost:5000/api/donor/all");
+  const res = await fetch(`${API_BASE}/api/donor/all`);
+
   const donors = await res.json();
 
   const body = document.getElementById("tableBody");
@@ -107,9 +122,10 @@ async function loadDashboard() {
 async function deleteDonor(id) {
   if (!confirm("Are you sure you want to delete this donor?")) return;
 
-  await fetch(`http://localhost:5000/api/donor/${id}`, {
-    method: "DELETE",
-  });
+await fetch(`${API_BASE}/api/donor/${id}`, {
+  method: "DELETE",
+});
+
 
   alert("Donor deleted successfully");
   loadDashboard();
